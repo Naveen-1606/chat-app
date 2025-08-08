@@ -4,6 +4,7 @@ from app.db.session import engine
 from app.api import auth, websocket_router, chat
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.db.models import * 
 
 app = FastAPI()
 

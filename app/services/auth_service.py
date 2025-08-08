@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from app.db.models import User
-from app.core.security import hash_password, verify_password
+from app.utils.auth import hash_password, verify_password
 
 def register_user(data, session: Session):
     existing = session.exec(select(User).where(User.email == data.email)).first()
