@@ -3,8 +3,7 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from app.db.session import engine
-from app.api import auth
-from app.api import websocket_router  # ✅ import here
+from app.api import auth, websocket_router, chat
 
 app = FastAPI()
 
@@ -14,6 +13,7 @@ def on_startup():
 
 app.include_router(auth.router)
 app.include_router(websocket_router.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def root():
