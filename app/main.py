@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from app.db.session import engine
-from app.api import auth, websocket_router, chat
+from app.api import auth, chat
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.models import * 
@@ -13,7 +13,6 @@ def on_startup():
     SQLModel.metadata.create_all(engine)
 
 app.include_router(auth.router)
-app.include_router(websocket_router.router)
 app.include_router(chat.router)
 
 app.add_middleware(
