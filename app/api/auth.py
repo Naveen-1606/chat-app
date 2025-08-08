@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlmodel import Session, select
+from sqlmodel import Session
 from app.db.session import get_session
-from app.db.models import User
-from app.utils.auth import hash_password, verify_password, create_access_token
+from app.utils.auth import create_access_token
+from app.services.auth_service import register_user, authenticate_user
 from pydantic import BaseModel
 from datetime import timedelta
 
@@ -19,19 +19,10 @@ class TokenResponse(BaseModel):
 
 @router.post("/register", response_model=TokenResponse)
 def register(data: RegisterInput, session: Session = Depends(get_session)):
-    user = session.exec(select(User).where(User.email == data.email)).first()
-    if user:
+    new_user = register_user(data, session)
+    if not new_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-
-    new_user = User(
-        username=data.username,
-        email=data.email,
-        hashed_password=hash_password(data.password)
-    )
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-
+    
     token = create_access_token({"sub": str(new_user.id)}, timedelta(minutes=60))
     return {"access_token": token}
 
@@ -41,9 +32,9 @@ class LoginInput(BaseModel):
 
 @router.post("/login", response_model=TokenResponse)
 def login(data: LoginInput, session: Session = Depends(get_session)):
-    user = session.exec(select(User).where(User.email == data.email)).first()
-    if not user or not verify_password(data.password, user.hashed_password):
+    user = authenticate_user(data.email, data.password, session)
+    if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
+    
     token = create_access_token({"sub": str(user.id)}, timedelta(minutes=60))
     return {"access_token": token}
