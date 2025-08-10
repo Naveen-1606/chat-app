@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chat App</title>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+    <div class="max-w-xl mx-auto p-6 text-center">
+        <h1 class="text-3xl font-bold mb-6">Welcome to Chat App</h1>
+
+        <div class="space-x-4">
+            <button 
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                hx-get="/login"
+                hx-target="#content"
+                hx-swap="innerHTML">
+                Login
+            </button>
+
+            <button 
+                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                hx-get="/register"
+                hx-target="#content"
+                hx-swap="innerHTML">
+                Register
+            </button>
+        </div>
+
+        <div id="content" class="mt-8"></div>
+    </div>
+
+</body>
+</html>

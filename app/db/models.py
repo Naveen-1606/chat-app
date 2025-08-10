@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
+from pydantic import EmailStr
 
 
 class UserChatRoom(SQLModel, table=True):
@@ -17,6 +18,10 @@ class User(SQLModel, table=True):
     chatrooms: List["ChatRoom"] = Relationship(back_populates="members", link_model=UserChatRoom)
     messages: List["Message"] = Relationship(back_populates="sender")
 
+class UserCreate(SQLModel):
+    username: str
+    email: EmailStr
+    password: str
 
 class ChatRoom(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

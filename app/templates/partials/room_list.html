@@ -1,0 +1,12 @@
+<ul class="divide-y divide-gray-200">
+    {% for room in rooms %}
+    <li class="p-2 hover:bg-gray-100">
+        <a href="/chat/rooms/{{ room.id }}" class="text-blue-600 hover:underline">
+            {{ room.name }}
+        </a>
+    </li>
+    {% endfor %}
+    {% if rooms|length == 0 %}
+    <li class="p-2 text-gray-500">No rooms yet. Create one above!</li>
+    {% endif %}
+</ul>

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     frontend_origins: str
     secret_key: str
     algorithm: str
+    access_token_expire_minutes: int
 
 
     class Config:

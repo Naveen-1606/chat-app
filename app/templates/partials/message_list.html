@@ -1,0 +1,11 @@
+{% for msg in messages %}
+<div class="p-2 rounded-lg {% if msg.user.username == current_user.username %}bg-blue-500 text-white self-end{% else %}bg-gray-300 text-black self-start{% endif %}">
+    <div class="text-sm font-semibold">
+        {{ msg.user.username }}
+        <span class="text-xs text-gray-700 ml-2">{{ msg.timestamp.strftime('%H:%M') }}</span>
+    </div>
+    <div class="mt-1">
+        {{ msg.content }}
+    </div>
+</div>
+{% endfor %}

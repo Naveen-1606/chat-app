@@ -1,60 +1,95 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
-from typing import List
-from app.utils.ws_manager import WebSocketManager
-import json
-from app.db.models import Message
-from datetime import datetime
-
+from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 from app.db.session import get_session
 from app.services.chat_service import create_room, get_user_rooms, send_message, get_room_messages
-from app.utils.auth import get_current_user
-from app.db.models import User
-from pydantic import BaseModel
+from app.services.auth_service import get_current_user
+from app.db.models import User, ChatRoom
+from app.sockets.chat_socket import manager
+from app.utils.templates import templates
 
 router = APIRouter(prefix="/chat", tags=["chat"])
-
-ws_manager = WebSocketManager()
 
 
 class RoomCreateInput(BaseModel):
     name: str
 
+
 @router.post("/rooms")
-def create_chat_room(data: RoomCreateInput, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+def create_chat_room(
+    data: RoomCreateInput,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
     return create_room(data.name, current_user, session)
 
+
 @router.get("/rooms")
-def get_rooms(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+def get_rooms(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
     return get_user_rooms(current_user, session)
+
+
+@router.get("/{room_id}", response_class=HTMLResponse)
+def chat_room_page(
+    request: Request,
+    room_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    room = session.get(ChatRoom, room_id)
+    if not room:
+        return HTMLResponse("Room not found", status_code=404)
+
+    return templates.TemplateResponse("chat.html", {
+        "request": request,
+        "room": room,
+        "current_user": current_user
+    })
+
 
 class MessageInput(BaseModel):
     content: str
 
+
 @router.post("/rooms/{room_id}/messages")
-def send_msg(room_id: int, data: MessageInput, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    return send_message(room_id, data.content, current_user, session)
+async def send_msg(
+    room_id: int,
+    data: MessageInput,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    # Save message to DB
+    send_message(room_id, data.content, current_user, session)
+
+    # Fetch updated messages
+    messages = get_room_messages(room_id, current_user, session)
+
+    # Render HTML partial
+    html_content = templates.get_template("partials/message_list.html").render(
+        messages=messages
+    )
+
+    # Broadcast to WebSocket clients in the same room
+    await manager.broadcast(room_id, html_content)
+
+    # Return HTML for HTMX response (sender sees update immediately)
+    return html_content
+
 
 @router.get("/rooms/{room_id}/messages")
-def get_msgs(room_id: int, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    return get_room_messages(room_id, current_user, session)
-
-
-@router.websocket("/ws/chat/{room_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: int, user: User = Depends(get_current_user)):
-    await ws_manager.connect(room_id, websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            msg = Message(
-                content=data,
-                timestamp=datetime.utcnow(),
-                sender_id=user.id,
-                room_id=room_id
-            )
-            session = next(get_session())
-            session.add(msg)
-            session.commit()
-            await ws_manager.broadcast(room_id, f"{user.username}: {data}")
-    except WebSocketDisconnect:
-        ws_manager.disconnect(room_id, websocket)
+def get_msgs(
+    room_id: int,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    messages = get_room_messages(room_id, current_user, session)
+    html_content = templates.get_template("partials/message_list.html").render(
+        messages=messages,
+        current_user=current_user
+    )
+    return html_content
