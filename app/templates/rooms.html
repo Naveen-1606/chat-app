@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col h-screen max-w-6xl mx-auto">
+
+  <!-- Header -->
+  <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Welcome, {{ user.username }}!</h1>
+    <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</a>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden border-t border-gray-300">
+  
+
+    <!-- Sidebar: Rooms List + Create Room -->
+    <aside class="w-64 bg-gray-100 p-4 overflow-y-auto border-r border-gray-300">
+
+      <h2 class="font-semibold mb-2">Chat Rooms</h2>
+      <ul class="space-y-1 mb-4">
+        {% for room in rooms %}
+        <li>
+          <a 
+            href="/chat/rooms/{{ room.id }}" 
+            class="block px-3 py-2 rounded hover:bg-gray-300
+              {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white {% endif %}">
+            {{ room.name }}
+          </a>
+        </li>
+        {% else %}
+        <li class="text-gray-500">No rooms available.</li>
+        {% endfor %}
+      </ul>
+
+      <!-- Create New Room Form -->
+      <form method="post" action="/chat/rooms" class="space-y-2">
+        <input 
+          type="text" 
+          name="name" 
+          placeholder="New room name" 
+          required 
+          class="w-full px-3 py-2 border border-gray-300 rounded"
+        />
+        <button 
+          type="submit" 
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          Create Room
+        </button>
+      </form>
+
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col">
+
+      {% if selected_room %}
+      
+      <!-- Room Header -->
+      <header class="bg-gray-800 text-white p-4">
+        <h2 class="text-lg font-semibold">Chat Room: {{ selected_room.name }}</h2>
+      </header>
+
+      <!-- Messages List -->
+      <section 
+        id="message-list" 
+        class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100"
+        hx-get="/chat/rooms/{{ selected_room.id }}/messages"
+        hx-trigger="load"
+        hx-swap="innerHTML"
+      >
+        {% for msg in messages %}
+        <div>
+          <strong>{{ msg.sender.username }}:</strong> {{ msg.content }}
+          <small class="text-gray-500 text-xs">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+        </div>
+        {% endfor %}
+      </section>
+
+      <!-- Message Input Form -->
+      <form 
+        hx-post="/chat/rooms/{{ selected_room.id }}/messages"
+        hx-target="#message-list"
+        hx-swap="innerHTML"
+        class="flex border-t border-gray-300 p-4"
+      >
+        <input 
+          type="text" 
+          name="content" 
+          placeholder="Type your message..." 
+          required
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-l"
+          autocomplete="off"
+        />
+        <button 
+          type="submit" 
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r">
+          Send
+        </button>
+      </form>
+
+      {% else %}
+      <!-- No Room Selected -->
+      <div class="flex-1 flex items-center justify-center text-gray-500">
+        <p>Select a chat room from the left or create a new one to get started.</p>
+      </div>
+      {% endif %}
+
+    </main>
+
+  </div>
+</div>
+{% endblock %}

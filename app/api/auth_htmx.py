@@ -5,7 +5,7 @@ from datetime import timedelta
 from app.db.session import get_session
 from app.db.models import Message
 from app.db.models import User, UserCreate
-from app.services.auth_service import register_user, authenticate_user, get_current_user
+from app.services.auth_service import register_user, authenticate_user
 from app.utils.auth import create_access_token
 from app.utils.templates import templates
 
@@ -95,50 +95,3 @@ def register_new_user(
     </script>
     """
     return HTMLResponse(content=response_html)
-
-
-@router.get("/chat")
-def chat_page(
-    request: Request,
-    session: Session = Depends(get_session),
-    user: User = Depends(get_current_user)
-):
-    if not user:
-        return RedirectResponse("/login")
-
-    messages = session.exec(
-        select(Message).order_by(Message.timestamp)
-    ).all()
-
-    return templates.TemplateResponse(
-        "chat.html",
-        {
-            "request": request,
-            "messages": messages,
-            "user": user
-        }
-    )
-
-
-@router.post("/send")
-def send_message(
-    request: Request,
-    content: str = Form(...),
-    session: Session = Depends(get_session),
-    user: User = Depends(get_current_user)
-):
-    if not user:
-        return RedirectResponse("/login")
-
-    msg = Message(sender_id=user.id, content=content)
-    session.add(msg)
-    session.commit()
-    session.refresh(msg)
-
-    return templates.TemplateResponse(
-        "partials/message.html",
-        {
-            "request": request,
-            "msg": msg
-        }
-    )
