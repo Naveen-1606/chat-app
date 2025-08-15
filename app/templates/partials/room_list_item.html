@@ -1,0 +1,26 @@
+<li id="room-{{ room.id }}">
+  <a 
+    href="/chat/rooms/{{ room.id }}" 
+    class="inline-block px-3 py-2 rounded hover:bg-gray-300
+      {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white {% endif %}">
+    {{ room.name }}
+  </a>
+
+  {% if room.is_member %}
+    <button 
+      hx-post="/chat/leave-room/{{ room.id }}"
+      hx-target="#room-{{ room.id }}"
+      hx-swap="outerHTML"
+      class="ml-2 px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
+      Leave
+    </button>
+  {% else %}
+    <button 
+      hx-post="/chat/join-room/{{ room.id }}"
+      hx-target="#room-{{ room.id }}"
+      hx-swap="outerHTML"
+      class="ml-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">
+      Join
+    </button>
+  {% endif %}
+</li>

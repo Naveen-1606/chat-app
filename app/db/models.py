@@ -40,3 +40,4 @@ class Message(SQLModel, table=True):
 
     sender: "User" = Relationship(back_populates="messages")
     room: "ChatRoom" = Relationship(back_populates="messages")
+    user: Optional["User"] = Relationship(back_populates="messages")
