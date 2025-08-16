@@ -1,0 +1,41 @@
+{% if selected_room %}
+  {% if membership_map[selected_room.id] %}
+    <!-- Chat input form -->
+    <form 
+      id="chat-form"
+      hx-post="/chat/rooms/{{ selected_room.id }}/messages"
+      hx-target="#message-list"
+      hx-swap="beforeend"
+      hx-on="htmx:afterRequest: this.reset()"
+      class="flex border-t border-gray-300 p-4"
+    >
+      <input 
+        type="text" 
+        name="content" 
+        placeholder="Type your message..." 
+        required
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-l"
+        autocomplete="off"
+      />
+      <button 
+        type="submit" 
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r">
+        Send
+      </button>
+    </form>
+  {% else %}
+    <!-- Join button if not a member -->
+    <div class="text-center text-gray-600 p-4">
+      <p class="mb-2">You must join this room to send messages.</p>
+      <form 
+        hx-post="/chat/rooms/{{ selected_room.id }}/join"
+        hx-target="body"
+        hx-swap="none"
+      >
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+          Join Room
+        </button>
+      </form>
+    </div>
+  {% endif %}
+{% endif %}

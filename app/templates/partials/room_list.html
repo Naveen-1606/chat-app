@@ -1,5 +1,6 @@
-{% for room in rooms %}
+<ul id="rooms-container" class="space-y-1">
+  {% for room in rooms %}
     {% include "partials/room_list_item.html" %}
-{% else %}
-    <p class="text-gray-500">No rooms available.</p>
-{% endfor %}
+  {% endfor %}
+</ul>
+

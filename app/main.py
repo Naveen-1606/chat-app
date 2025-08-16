@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from sqlmodel import SQLModel
 from app.db.session import engine
-from app.api import auth, chat, pages, auth_htmx, websocket_router, chat_htmx
+from app.api import auth_htmx, websocket_router, chat_htmx
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from fastapi.staticfiles import StaticFiles

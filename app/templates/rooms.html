@@ -10,40 +10,22 @@
 
   <div class="flex flex-1 overflow-hidden border-t border-gray-300">
 
-    <!-- Sidebar: Rooms List + Create Room -->
+    <!-- Sidebar: Rooms List -->
     <aside class="w-64 bg-gray-100 p-4 overflow-y-auto border-r border-gray-300">
       <h2 class="font-semibold mb-2">Chat Rooms</h2>
-      <ul class="space-y-1 mb-4">
-        {% for room in rooms %}
-          <li>
-            <a 
-              href="/chat/rooms/{{ room.id }}" 
-              class="block px-3 py-2 rounded hover:bg-gray-300
-                {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white {% endif %}">
-              {{ room.name }}
-            </a>
-          </li>
-        {% else %}
-          <li class="text-gray-500">No rooms available.</li>
-        {% endfor %}
-      </ul>
+
+      <!-- Rooms container that HTMX will update -->
+      <div id="rooms-container">
+        {% include "partials/room_list.html" %}
+      </div>
 
       <!-- Create New Room Form -->
       <form method="post" action="/chat/rooms" class="space-y-2">
-        <input 
-          type="text" 
-          name="name" 
-          placeholder="New room name" 
-          required 
-          class="w-full px-3 py-2 border border-gray-300 rounded"
-        />
-        <button 
-          type="submit" 
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-          Create Room
-        </button>
+        <input type="text" name="name" placeholder="New room name" required class="w-full px-3 py-2 border rounded">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Create Room</button>
       </form>
     </aside>
+
 
     <!-- Main Chat Area -->
     <main class="flex-1 flex flex-col">
@@ -52,20 +34,6 @@
         <!-- Room Header -->
         <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
           <h2 class="text-lg font-semibold">Chat Room: {{ selected_room.name }}</h2>
-
-          {% if is_member %}
-            <form method="post" action="/chat/rooms/{{ selected_room.id }}/leave">
-              <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                Leave Room
-              </button>
-            </form>
-          {% else %}
-            <form method="post" action="/chat/rooms/{{ selected_room.id }}/join">
-              <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                Join Room
-              </button>
-            </form>
-          {% endif %}
         </header>
 
         <!-- Messages List -->
@@ -85,40 +53,10 @@
         </section>
 
         <!-- Message Input Area -->
-        <div class="p-4 bg-gray-100 border-t">
-          {% if is_member %}
-            <form 
-              id="chat-form"
-              hx-post="/chat/rooms/{{ selected_room.id }}/messages"
-              hx-target="#message-list"
-              hx-swap="innerHTML"
-              class="flex border-t border-gray-300 p-4"
-            >
-              <input 
-                type="text" 
-                name="content" 
-                placeholder="Type your message..." 
-                required
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-l"
-                autocomplete="off"
-              />
-              <button 
-                type="submit" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r">
-                Send
-              </button>
-            </form>
-          {% else %}
-            <div class="text-center text-gray-600">
-              <p class="mb-2">You must join this room to send messages.</p>
-              <form method="post" action="/chat/rooms/{{ selected_room.id }}/join">
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                  Join Room
-                </button>
-              </form>
-            </div>
-          {% endif %}
+        <div id="message-input-container">
+          {% include "partials/message_input.html" %}
         </div>
+
 
       {% else %}
         <div class="flex items-center justify-center flex-1 text-gray-500">
