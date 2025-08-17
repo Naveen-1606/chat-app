@@ -1,5 +1,6 @@
 window.socket = window.socket || null;
 window.currentRoomId = window.currentRoomId || null;
+window.messageQueue = window.messageQueue || [];
 
 
 // -----------------------------
@@ -37,7 +38,7 @@ function renderMessage({ sender = "System", content = "", timestamp = null, type
 }
 
 // --------------------------
-// Attach send message handler
+// Attach send message handler, queue the message if web socket is not connected
 // --------------------------
 function attachMessageFormHandler() {
   const form = document.getElementById("message-form");
@@ -45,20 +46,22 @@ function attachMessageFormHandler() {
 
   if (!form || !input) return;
 
-  // Clear previous handler to avoid duplicates
   form.onsubmit = (e) => {
     e.preventDefault();
-    if (!socket) {
-      console.warn("WebSocket not connected yet");
-      return;
-    }
     const content = input.value.trim();
-    if (content !== "") {
+    if (content === "") return;
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn("⚠️ Socket not ready, queueing message:", content);
+      messageQueue.push(content);   // 🆕 queue it
+    } else {
       socket.send(JSON.stringify({ content }));
-      input.value = "";
     }
+
+    input.value = "";
   };
 }
+
 
 // --------------------------
 // Connect to WebSocket
@@ -82,9 +85,15 @@ function connectWebSocket(roomId) {
 
   socket.onopen = () => {
     console.log(`✅ Connected to room ${roomId}`);
-    // const chatMessages = document.getElementById("chat-messages");
     if (chatMessages) chatMessages.innerHTML = "";
-    attachMessageFormHandler(); // Bind send handler
+    attachMessageFormHandler();
+
+    // 🆕 Flush queued messages
+    while (messageQueue.length > 0) {
+        const msg = messageQueue.shift();
+        console.log("📤 Sending queued:", msg);
+        socket.send(JSON.stringify({ content: msg }));
+    }
   };
 
   socket.onmessage = (event) => {
