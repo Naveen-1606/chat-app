@@ -1,7 +1,13 @@
 <li class="flex justify-between items-center px-3 py-2 rounded hover:bg-gray-300
     {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white {% endif %}">
   
-  <a href="/chat/rooms/{{ room.id }}" class="flex-1">{{ room.name }}</a>
+  <!-- Room link triggers loadRoom JS -->
+  <a href="#"
+     class="flex-1 room-link"
+     data-room-id="{{ room.id }}"
+     onclick="event.preventDefault(); loadRoom({{ room.id }});">
+     {{ room.name }}
+  </a>
 
   {% if membership_map[room.id] %}
     <form hx-post="/chat/rooms/{{ room.id }}/leave" hx-target="body" hx-swap="none" class="ml-2">

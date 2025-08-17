@@ -1,6 +1,9 @@
 {% for msg in messages %}
-<div>
+<div 
+  class="p-2 rounded-lg {% if msg.user_id == user.id %}bg-blue-500 text-white{% else %}bg-gray-200{% endif %}">
   <strong>{{ msg.sender.username }}:</strong> {{ msg.content }}
-  <small class="text-gray-500 text-xs">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+  <small class="text-gray-500 text-xs">
+    {{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+  </small>
 </div>
 {% endfor %}

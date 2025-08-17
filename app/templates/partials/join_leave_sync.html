@@ -7,3 +7,8 @@
 <div id="message-input-container" hx-swap-oob="true">
   {% include "partials/message_input.html" %}
 </div>
+
+<!-- Trigger WebSocket connection for the newly joined room -->
+<script>
+  window.connectWebSocket({{ selected_room.id }});
+</script>

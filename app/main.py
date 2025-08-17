@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from sqlmodel import SQLModel
 from app.db.session import engine
-from app.api import auth_htmx, websocket_router, chat_htmx
+from app.api import auth_htmx, chat_ws, chat_htmx
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from fastapi.staticfiles import StaticFiles
@@ -21,11 +21,8 @@ def on_startup():
     SQLModel.metadata.create_all(engine)
 
 # Routers
-# app.include_router(auth.router)
-# app.include_router(chat.router)
-# app.include_router(pages.router)
 app.include_router(auth_htmx.router)
-app.include_router(websocket_router.router)
+app.include_router(chat_ws.router)
 app.include_router(chat_htmx.router)
 
 # Static & templates

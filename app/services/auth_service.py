@@ -54,22 +54,48 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-async def get_current_user_ws(websocket: WebSocket, session: Session = Depends(get_session)):
-    token = websocket.query_params.get("token")
+
+
+async def get_current_user_ws(
+    websocket: WebSocket,
+    session: Session = Depends(get_session)
+) -> User:
+    """
+    Extract user from WebSocket connection using JWT token.
+    Token can come from query param, header, or cookie.
+    """
+
+    token = None
+
+    # 1. Try cookies
+    if "access_token" in websocket.cookies:
+        token = websocket.cookies["access_token"]
+
+    # 2. Try headers
+    elif "authorization" in websocket.headers:
+        auth_header = websocket.headers["authorization"]
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+    # 3. Try query params
+    elif "token" in websocket.query_params:
+        token = websocket.query_params["token"]
+
     if not token:
         await websocket.close(code=1008)
-        raise HTTPException(status_code=401, detail="Token missing")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
     try:
         payload = decode_access_token(token)
         user_id = payload.get("sub")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
+    except (JWTError, ValueError):
         await websocket.close(code=1008)
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+    # Look up user in DB
     user = session.get(User, user_id)
     if not user:
         await websocket.close(code=1008)
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
     return user

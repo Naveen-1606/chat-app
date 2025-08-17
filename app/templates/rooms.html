@@ -26,7 +26,6 @@
       </form>
     </aside>
 
-
     <!-- Main Chat Area -->
     <main class="flex-1 flex flex-col">
       {% if selected_room %}
@@ -38,25 +37,16 @@
 
         <!-- Messages List -->
         <section 
-          id="message-list" 
+          id="chat-messages" 
           class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100"
-          hx-get="/chat/rooms/{{ selected_room.id }}/messages"
-          hx-trigger="load"
-          hx-swap="innerHTML"
         >
-          {% for msg in messages %}
-          <div class="p-2 rounded-lg {% if msg.user_id == user.id %}bg-blue-500 text-white{% else %}bg-gray-200{% endif %}">
-            <strong>{{ msg.user.username }}:</strong> {{ msg.content }}
-            <small class="text-gray-500 text-xs">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-          </div>
-          {% endfor %}
+          <!-- Messages will be rendered by chat.js -->
         </section>
 
         <!-- Message Input Area -->
         <div id="message-input-container">
           {% include "partials/message_input.html" %}
         </div>
-
 
       {% else %}
         <div class="flex items-center justify-center flex-1 text-gray-500">
@@ -67,4 +57,8 @@
 
   </div>
 </div>
+
+<!-- Load chat.js after HTMX and Tailwind -->
+<script src="{{ url_for('static', path='js/chat.js') }}"></script>
+
 {% endblock %}

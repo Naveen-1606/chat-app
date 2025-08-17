@@ -2,20 +2,17 @@
   {% if membership_map[selected_room.id] %}
     <!-- Chat input form -->
     <form 
-      id="chat-form"
-      hx-post="/chat/rooms/{{ selected_room.id }}/messages"
-      hx-target="#message-list"
-      hx-swap="beforeend"
-      hx-on="htmx:afterRequest: this.reset()"
+      id="message-form"
       class="flex border-t border-gray-300 p-4"
+      onsubmit="return false;"
     >
       <input 
+        id="message-input"
         type="text" 
-        name="content" 
         placeholder="Type your message..." 
+        autocomplete="off"
         required
         class="flex-1 px-3 py-2 border border-gray-300 rounded-l"
-        autocomplete="off"
       />
       <button 
         type="submit" 
