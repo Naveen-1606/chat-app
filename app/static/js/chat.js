@@ -244,6 +244,28 @@ function connectWebSocket(roomId) {
           el.textContent = `Several people are typing…`;
           el.classList.remove("hidden");
         }
+    } else if (data.type === "online_status") {
+        const list = document.getElementById("online-users-list");
+        list.innerHTML = ""; // clear old list
+
+        data.users.forEach(u => {
+            const li = document.createElement("li");
+            li.classList.add("flex", "items-center", "space-x-2");
+
+            // green dot
+            const dot = document.createElement("span");
+            dot.classList.add("h-2", "w-2", "bg-green-500", "rounded-full", "inline-block");
+
+            const name = document.createElement("span");
+            name.textContent = (u === window.currentUsername) ? "You" : u; // Rename yourself
+
+            li.appendChild(dot);
+            li.appendChild(name);
+
+            list.appendChild(li);
+        });
+            return;
+
     } else {
         renderMessage(data);
     }

@@ -32,6 +32,7 @@ async def websocket_endpoint(
 
     # Register connection (room + user)
     await manager.connect(websocket, room_id, current_user)
+    await manager.broadcast_online_status(room_id)
 
     # Send recent chat history to the newly joined user
     messages = get_room_messages(room_id, current_user, session)
@@ -141,6 +142,7 @@ async def websocket_endpoint(
             "room_id": room_id,
             "users": manager.list_typing_usernames(room_id)
         })
+        await manager.broadcast_online_status(room_id)
         # Broadcast "user left"
         await manager.broadcast(
             room_id,

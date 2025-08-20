@@ -74,5 +74,15 @@ class ConnectionManager:
         # map ids -> usernames from current connections
         id_to_name = {u.id: u.username for _, u in self.active_connections.get(room_id, [])}
         return [id_to_name[uid] for uid in self.typing_users.get(room_id, set()) if uid in id_to_name]
+    
+
+    async def broadcast_online_status(self, room_id: int):
+        users = [u.username for _, u in self.active_connections.get(room_id, [])]
+        for ws, _ in self.active_connections.get(room_id, []):
+            await ws.send_json({
+                "type": "online_status",
+                "room_id": room_id,
+                "users": users
+            })
 
 
