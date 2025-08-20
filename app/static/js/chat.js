@@ -1,6 +1,9 @@
 window.socket = window.socket || null;
 window.currentRoomId = window.currentRoomId || null;
 window.messageQueue = window.messageQueue || [];
+window.typingTimer = window.typingTimer || null;
+window.isTyping = window.isTyping || false;
+window.TYPING_IDLE_MS = window.TYPING_IDLE_MS || 2000; // stop after 2s idle
 
 
 // Generate simple unique ID
@@ -8,6 +11,10 @@ function generateTempId() {
   return "temp-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 }
 
+function sendTyping(status) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: "typing", status }));
+}
 
 // -----------------------------
 // Load room via HTMX + WebSocket
@@ -95,6 +102,26 @@ function attachMessageFormHandler() {
     }
 
     input.value = "";
+    // after sending, consider typing stopped
+    if (isTyping) {
+      isTyping = false;
+      sendTyping("stop");
+      clearTimeout(typingTimer);
+    }
+  };
+  // TYPING indicator: start on input, stop after idle
+  input.oninput = () => {
+    if (!isTyping) {
+      isTyping = true;
+      sendTyping("start");
+    }
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      if (isTyping) {
+        isTyping = false;
+        sendTyping("stop");
+      }
+    }, TYPING_IDLE_MS);
   };
 }
 
@@ -197,6 +224,26 @@ function connectWebSocket(roomId) {
             statusEl.textContent = `Seen by ${data.seen_by} at ${new Date(data.seen_at).toLocaleTimeString()}`;
         }
 
+    } else if (data.type === "typing_update") {
+        const you = window.currentUsername;
+        const others = (data.users || []).filter(u => u !== you);
+
+        const el = document.getElementById("typing-indicator");
+        if (!el) return;
+
+        if (others.length === 0) {
+          el.textContent = "";
+          el.classList.add("hidden");
+        } else if (others.length === 1) {
+          el.textContent = `${others[0]} is typing…`;
+          el.classList.remove("hidden");
+        } else if (others.length === 2) {
+          el.textContent = `${others[0]} and ${others[1]} are typing…`;
+          el.classList.remove("hidden");
+        } else {
+          el.textContent = `Several people are typing…`;
+          el.classList.remove("hidden");
+        }
     } else {
         renderMessage(data);
     }

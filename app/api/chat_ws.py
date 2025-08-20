@@ -96,6 +96,19 @@ async def websocket_endpoint(
                         **message_payload,
                     },
                 )
+                continue
+
+            # --- typing start/stop ---
+            elif data.get("type") == "typing":
+                status_flag = data.get("status")  # "start" or "stop"
+                manager.set_typing(room_id, current_user.id, status_flag == "start")
+                # broadcast full list of typing usernames
+                await manager.broadcast(room_id, {
+                    "type": "typing_update",
+                    "room_id": room_id,
+                    "users": manager.list_typing_usernames(room_id)
+                })
+                continue
 
             # 🟢 Handle seen event
             elif data.get("type") == "seen":
@@ -122,7 +135,12 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         # Cleanup connection
         manager.disconnect(websocket, room_id, current_user)
-
+        # clear typing and notify others
+        await manager.broadcast(room_id, {
+            "type": "typing_update",
+            "room_id": room_id,
+            "users": manager.list_typing_usernames(room_id)
+        })
         # Broadcast "user left"
         await manager.broadcast(
             room_id,

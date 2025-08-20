@@ -8,6 +8,8 @@ class ConnectionManager:
     def __init__(self):
         # { room_id: [ (websocket, user), ... ] }
         self.active_connections: Dict[int, List[tuple[WebSocket, User]]] = {}
+        self.user_connections: dict[int, WebSocket] = {}  # user_id -> WebSocket
+        self.typing_users: dict[int, set] = {}  # room_id -> set of user_ids
 
     async def connect(self, websocket: WebSocket, room_id: int, user: User):
         """Register a new websocket connection for a user in a room."""
@@ -55,4 +57,22 @@ class ConnectionManager:
             if user.id == user_id:
                 return ws
         return None
+    
+
+    # --- Typing helpers ---
+    def set_typing(self, room_id: int, user_id: int, is_typing: bool):
+        if room_id not in self.typing_users:
+            self.typing_users[room_id] = set()
+
+        if is_typing:
+            self.typing_users[room_id].add(user_id)
+        else:
+            self.typing_users[room_id].discard(user_id)
+
+
+    def list_typing_usernames(self, room_id: int) -> list[str]:
+        # map ids -> usernames from current connections
+        id_to_name = {u.id: u.username for _, u in self.active_connections.get(room_id, [])}
+        return [id_to_name[uid] for uid in self.typing_users.get(room_id, set()) if uid in id_to_name]
+
 
