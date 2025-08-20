@@ -61,4 +61,9 @@
 <!-- Load chat.js after HTMX and Tailwind -->
 <script src="{{ url_for('static', path='js/chat.js') }}"></script>
 
+<script>
+  window.currentUsername = "{{ user.username }}";
+</script>
+
+
 {% endblock %}

@@ -3,6 +3,12 @@ window.currentRoomId = window.currentRoomId || null;
 window.messageQueue = window.messageQueue || [];
 
 
+// Generate simple unique ID
+function generateTempId() {
+  return "temp-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+}
+
+
 // -----------------------------
 // Load room via HTMX + WebSocket
 // -----------------------------
@@ -17,23 +23,46 @@ function loadRoom(roomId) {
 // --------------------------
 // Render a single message
 // --------------------------
-function renderMessage({ sender = "System", content = "", timestamp = null, type = "chat_message", message = "" }) {
+function renderMessage({ sender, content = "", timestamp = null, type = "chat_message", message = "", tempId = null, id = null, status = null }) {
   const chatMessages = document.getElementById("chat-messages");
   if (!chatMessages) return;
 
-  const div = document.createElement("div");
-  div.classList.add("mb-2");
+  let div = null;
+  if (tempId) {
+    // Look for existing pending message
+    div = chatMessages.querySelector(`[data-temp-id="${tempId}"]`);
+  }
+
+  if (!div) {
+    div = document.createElement("div");
+    div.classList.add("mb-2");
+    if (tempId) div.dataset.tempId = tempId;
+    if (id) div.dataset.messageId = id;
+    chatMessages.appendChild(div);
+  }
+
+
+  // const div = document.createElement("div");
+  // div.classList.add("mb-2");
 
   if (type === "system") {
     div.innerHTML = `<em class="text-gray-500">${message} ${timestamp ? '(' + new Date(timestamp).toLocaleTimeString() + ')' : ''}</em>`;
   } else if (type === "chat_message") {
+    let label = sender === window.currentUsername ? "You" : sender;
+
+    let statusText = "";
+    if (label === "You" && status) {
+      statusText = ` <small class="text-gray-400">(${status})</small>`;
+    }
+
     div.innerHTML = `
-      <strong>${sender}:</strong> ${content}
+      <strong>${label}:</strong> ${content}
       <small class="text-gray-500 text-xs">${timestamp ? new Date(timestamp).toLocaleString() : ""}</small>
+      ${statusText}
     `;
   }
 
-  chatMessages.appendChild(div);
+  // chatMessages.appendChild(div);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -51,11 +80,22 @@ function attachMessageFormHandler() {
     const content = input.value.trim();
     if (content === "") return;
 
+    const tempId = generateTempId();
+
+    // Render immediately as pending
+    renderMessage({
+      sender: "You",
+      content,
+      timestamp: new Date().toISOString(),
+      tempId,
+      status: "pending"
+    });
+
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.warn("⚠️ Socket not ready, queueing message:", content);
-      messageQueue.push(content);   // 🆕 queue it
+      messageQueue.push(content, tempId);   // 🆕 queue it
     } else {
-      socket.send(JSON.stringify({ content }));
+      socket.send(JSON.stringify({ content, tempId }));
     }
 
     input.value = "";
@@ -90,9 +130,9 @@ function connectWebSocket(roomId) {
 
     // 🆕 Flush queued messages
     while (messageQueue.length > 0) {
-        const msg = messageQueue.shift();
+        const {msg, tempId} = messageQueue.shift();
         console.log("📤 Sending queued:", msg);
-        socket.send(JSON.stringify({ content: msg }));
+        socket.send(JSON.stringify({ content: msg, tempId }));
     }
   };
 
@@ -107,13 +147,41 @@ function connectWebSocket(roomId) {
         sender: m.sender,
         content: m.content,
         timestamp: m.timestamp,
+        status: "sent"
       }));
     } else if (data.type === "error") {
       alert(data.message);
+    } else if (data.type === "chat_message") {
+      if (data.tempId) {
+      // 🆕 Update pending bubble instead of creating new
+      const pending = chatMessages.querySelector(`[data-temp-id="${data.tempId}"]`);
+      if (pending) {
+        pending.innerHTML = `
+          <strong>You:</strong> ${data.content}
+          <small class="text-gray-500 text-xs">${new Date(data.timestamp).toLocaleString()}</small>
+          <small class="text-gray-400">(sent)</small>
+        `;
+        pending.dataset.messageId = data.id; // store real id now
+        delete pending.dataset.tempId;
+      } else {
+        // fallback (in case div not found)
+        renderMessage({ ...data, sender: "You", status: "sent" });
+
+      }
     } else {
-      renderMessage(data);
+      // 🆕 Only render others’ messages
+      if (data.sender === window.currentUsername) {
+        // skip (already updated local bubble)
+        return;
+      }
+      // Normal message from others
+      renderMessage({ ...data, status: "sent" });
     }
-  };
+  } else {
+    renderMessage(data);
+  }
+};
+
 
   socket.onclose = () => {
     console.log(`❌ Disconnected from room ${roomId}`); socket = null; };

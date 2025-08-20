@@ -1,12 +1,11 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status
 from sqlmodel import Session
-
+from datetime import datetime
 from app.utils.connection_manager import ConnectionManager
 from app.db.session import get_session
 from app.services.chat_service import send_message, get_room_messages, is_user_member
 from app.services.auth_service import get_current_user_ws
 from app.db.models import User
-from datetime import datetime
 
 router = APIRouter()
 manager = ConnectionManager()
@@ -17,7 +16,7 @@ async def websocket_endpoint(
     websocket: WebSocket,
     room_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user_ws),
+    current_user: User = Depends(get_current_user_ws)
 ):
     # Accept the websocket connection
     await websocket.accept()
@@ -31,7 +30,7 @@ async def websocket_endpoint(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    # Register connection
+    # Register connection (room + user)
     await manager.connect(websocket, room_id, current_user)
 
     # Send recent chat history to the newly joined user
@@ -67,12 +66,25 @@ async def websocket_endpoint(
             # Wait for messages from this client
             data = await websocket.receive_json()
             content = data.get("content")
+            temp_id = data.get("tempId")  # 🆕 client’s temp id
 
             if not content:
                 continue
 
             # Save message in DB
             msg = send_message(room_id, content, current_user, session)
+
+            message_payload = {
+                "type": "chat_message",
+                "id": msg.id,
+                "sender": current_user.username,
+                "content": msg.content,
+                "timestamp": msg.timestamp.isoformat(),
+            }
+
+            # 🆕 Echo back with tempId for sender only
+            await websocket.send_json({**message_payload, "tempId": temp_id})
+            
 
             # Broadcast to everyone in the room
             await manager.broadcast(
