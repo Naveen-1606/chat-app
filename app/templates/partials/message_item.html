@@ -1,7 +1,19 @@
-<div 
-  class="p-2 rounded-lg {% if message.user_id == user.id %}bg-blue-500 text-white{% else %}bg-gray-200{% endif %}">
-  <strong>{{ message.sender.username }}:</strong> {{ message.content }}
-  <small class="text-gray-500 text-xs">
-    {{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
-  </small>
+<div class="message-item" data-message-id="{{ message.id }}">
+  <div>
+    {% if message.sender.id == user.id %}
+      <span class="font-bold">You:</span>
+    {% else %}
+      <span class="font-bold">{{ message.sender.username }}:</span>
+    {% endif %}
+    {{ message.content }}
+  </div>
+  <div class="text-xs text-gray-400">
+    {{ message.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}
+  </div>
+
+  <!-- placeholder for seen status -->
+  {% if message.sender.id == user.id %}
+  <div class="message-status text-xs text-gray-500 mt-1"></div>
+  {% endif %}
 </div>
+

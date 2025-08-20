@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from app.db.models import ChatRoom, Message, UserChatRoom
+from app.db.models import ChatRoom, Message, UserChatRoom, MessageSeen
 from app.db.models import User
 from fastapi import HTTPException
 import logging
@@ -137,3 +137,27 @@ def get_membership_map(user_id: int, session: Session) -> dict[int, bool]:
     # Build map: room_id -> True/False
     membership_map = {room.id: (room.id in memberships) for room in session.exec(select(ChatRoom)).all()}
     return membership_map
+
+
+def mark_message_seen(message_id: int, user_id: int, session: Session) -> MessageSeen | None:
+    """Mark a message as seen by a user, return the MessageSeen entry (or None if already seen)."""
+
+    seen_entry = session.exec(
+        select(MessageSeen).where(
+            (MessageSeen.message_id == message_id) &
+            (MessageSeen.user_id == user_id)
+        )
+    ).first()
+
+    if seen_entry:
+        return None  # Already marked as seen
+
+    seen_entry = MessageSeen(
+        message_id=message_id,
+        user_id=user_id,
+        seen_at=datetime.utcnow()
+    )
+    session.add(seen_entry)
+    session.commit()
+    session.refresh(seen_entry)
+    return seen_entry

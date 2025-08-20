@@ -47,3 +47,12 @@ class ConnectionManager:
     def get_users_in_room(self, room_id: int) -> list[User]:
         """Return list of connected users in a room."""
         return [u for _, u in self.active_connections.get(room_id, [])]
+    
+
+    def get_user_ws(self, room_id: int, user_id: int):
+        """Return the WebSocket for a specific user in a room (if connected)."""
+        for ws, user in self.active_connections.get(room_id, []):
+            if user.id == user_id:
+                return ws
+        return None
+
