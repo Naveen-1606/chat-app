@@ -1,18 +1,19 @@
-<div class="message-item" data-message-id="{{ message.id }}">
-  <div>
-    {% if message.sender.id == user.id %}
-      <span class="font-bold">You:</span>
-    {% else %}
-      <span class="font-bold">{{ message.sender.username }}:</span>
-    {% endif %}
-    {{ message.content }}
+<div 
+  class="mb-2 p-3 rounded-xl max-w-xl {% if message.sender.id == user.id %}bg-blue-500 text-white self-end{% else %}bg-gray-200 text-gray-800 self-start{% endif %} shadow-sm message-item" 
+  data-message-id="{{ message.id }}"
+>
+  <div class="flex justify-between items-baseline">
+    <strong class="mr-2">
+      {% if message.sender.id == user.id %}You{% else %}{{ message.sender.username }}{% endif %}:
+    </strong>
+    <small class="text-gray-300 text-xs {% if message.sender.id != user.id %}text-gray-500{% endif %}">
+      {{ message.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}
+    </small>
   </div>
-  <div class="text-xs text-gray-400">
-    {{ message.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}
-  </div>
+  <p class="mt-1">{{ message.content }}</p>
 
-  <!-- placeholder for seen status -->
+  <!-- Seen status placeholder for sender -->
   {% if message.sender.id == user.id %}
-  <div class="message-status text-xs text-gray-500 mt-1"></div>
+  <div class="message-status text-xs text-gray-400 mt-1"></div>
   {% endif %}
 </div>

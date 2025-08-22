@@ -1,9 +1,13 @@
 {% for msg in messages %}
 <div 
-  class="p-2 rounded-lg {% if msg.user_id == user.id %}bg-blue-500 text-white{% else %}bg-gray-200{% endif %}">
-  <strong>{{ msg.sender.username }}:</strong> {{ msg.content }}
-  <small class="text-gray-500 text-xs">
-    {{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
-  </small>
+  class="mb-2 p-3 rounded-xl max-w-xl {% if msg.user_id == user.id %}bg-blue-500 text-white self-end{% else %}bg-gray-200 text-gray-800 self-start{% endif %} shadow-sm"
+>
+  <div class="flex justify-between items-baseline">
+    <strong class="mr-2">{{ msg.sender.username }}</strong>
+    <small class="text-gray-300 text-xs {% if msg.user_id != user.id %}text-gray-500{% endif %}">
+      {{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+    </small>
+  </div>
+  <p class="mt-1">{{ msg.content }}</p>
 </div>
 {% endfor %}

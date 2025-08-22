@@ -1,14 +1,17 @@
-<!-- Update sidebar out of band -->
+<!-- Update sidebar out-of-band -->
 <div id="rooms-container" hx-swap-oob="true">
   {% include "partials/room_list.html" %}
 </div>
 
-<!-- Update message input out of band -->
+<!-- Update message input out-of-band -->
 <div id="message-input-container" hx-swap-oob="true">
   {% include "partials/message_input.html" %}
 </div>
 
-<!-- Trigger WebSocket connection for the newly joined room -->
+<!-- Connect WebSocket for the newly joined room -->
 <script>
-  window.connectWebSocket({{ selected_room.id }});
+  // Ensure the room ID exists
+  if ({{ selected_room.id | default('null') }} !== null) {
+    window.connectWebSocket({{ selected_room.id }});
+  }
 </script>

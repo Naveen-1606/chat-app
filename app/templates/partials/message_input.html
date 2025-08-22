@@ -3,7 +3,7 @@
     <!-- Chat input form -->
     <form 
       id="message-form"
-      class="flex border-t border-gray-300 p-4"
+      class="flex border-t border-gray-300 p-3 bg-white rounded-b shadow-sm"
       onsubmit="return false;"
     >
       <input 
@@ -12,24 +12,28 @@
         placeholder="Type your message..." 
         autocomplete="off"
         required
-        class="flex-1 px-3 py-2 border border-gray-300 rounded-l"
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-l focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <button 
         type="submit" 
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r">
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r font-semibold"
+      >
         Send
       </button>
     </form>
   {% else %}
     <!-- Join button if not a member -->
-    <div class="text-center text-gray-600 p-4">
+    <div class="text-center text-gray-700 p-4 bg-gray-50 rounded shadow-sm">
       <p class="mb-2">You must join this room to send messages.</p>
       <form 
         hx-post="/chat/rooms/{{ selected_room.id }}/join"
         hx-target="body"
         hx-swap="none"
       >
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+        <button 
+          type="submit" 
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold"
+        >
           Join Room
         </button>
       </form>

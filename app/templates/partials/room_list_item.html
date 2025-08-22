@@ -1,9 +1,9 @@
-<li class="flex justify-between items-center px-3 py-2 rounded hover:bg-gray-300
-    {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white {% endif %}">
-  
+<li class="flex justify-between items-center px-3 py-2 rounded-lg mb-1 hover:bg-gray-200
+    {% if selected_room and selected_room.id == room.id %} bg-blue-500 text-white font-semibold {% endif %} shadow-sm">
+
   <!-- Room link triggers loadRoom JS -->
   <a href="#"
-     class="flex-1 room-link"
+     class="flex-1 room-link truncate"
      data-room-id="{{ room.id }}"
      onclick="event.preventDefault(); loadRoom({{ room.id }});">
      {{ room.name }}
@@ -11,13 +11,16 @@
 
   {% if membership_map[room.id] %}
     <form hx-post="/chat/rooms/{{ room.id }}/leave" hx-target="body" hx-swap="none" class="ml-2">
-      <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">Leave</button>
+      <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded-lg text-sm">
+        Leave
+      </button>
     </form>
   {% else %}
     <form hx-post="/chat/rooms/{{ room.id }}/join" hx-target="body" hx-swap="none" class="ml-2">
-      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded">Join</button>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg text-sm">
+        Join
+      </button>
     </form>
   {% endif %}
 
 </li>
-

@@ -3,12 +3,24 @@
 <head>
     <meta charset="UTF-8" />
     <title>Chat App - {% block title %}{% endblock %}</title>
+
+    <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+    <!-- Optional: Smooth scroll for chat -->
+    <style>
+        #chat-messages {
+            scroll-behavior: smooth;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
+    <!-- Header -->
+    <header class="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md">
         <h1 class="text-2xl font-bold">Chat App</h1>
         <nav>
             <a href="/login" class="hover:underline mr-4">Login</a>
@@ -16,16 +28,17 @@
         </nav>
     </header>
 
-    <main class="flex-grow max-w-xl mx-auto p-6">
+    <!-- Main content -->
+    <main class="flex-grow max-w-4xl mx-auto p-6 w-full">
         {% block content %}
-        <!-- Page-specific content will go here -->
+        <!-- Page-specific content goes here -->
         {% endblock %}
     </main>
 
-    <footer class="bg-gray-800 text-white p-4 text-center text-sm">
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center text-sm mt-auto">
         &copy; 2025 Chat App. All rights reserved.
     </footer>
-
 
 </body>
 </html>
