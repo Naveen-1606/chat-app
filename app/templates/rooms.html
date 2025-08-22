@@ -5,7 +5,8 @@
   <!-- Header -->
   <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
     <h1 class="text-xl font-bold">Welcome, {{ user.username }}!</h1>
-    <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</a>
+    <a href="/logout" onclick="localStorage.removeItem('access_token');" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">Logout</a>
+
   </header>
 
   <div class="flex flex-1 overflow-hidden border-t border-gray-300">

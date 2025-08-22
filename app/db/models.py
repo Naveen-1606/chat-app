@@ -22,6 +22,7 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_verified: bool = False
 
     chatrooms: List["ChatRoom"] = Relationship(back_populates="members", link_model=UserChatRoom)
     messages: List["Message"] = Relationship(back_populates="sender")

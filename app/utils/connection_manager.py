@@ -85,4 +85,3 @@ class ConnectionManager:
                 "users": users
             })
 
-

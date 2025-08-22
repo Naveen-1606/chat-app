@@ -5,7 +5,6 @@ window.typingTimer = window.typingTimer || null;
 window.isTyping = window.isTyping || false;
 window.TYPING_IDLE_MS = window.TYPING_IDLE_MS || 2000; // stop after 2s idle
 
-
 // Generate simple unique ID
 function generateTempId() {
   return "temp-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
